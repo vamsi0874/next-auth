@@ -12,7 +12,6 @@ import { sendVerificationEmail } from "@/lib/mail";
 
 export const login = async (
   values: z.infer<typeof LoginSchema>,
-  callbackUrl?:String
 ) => {
   
   await connectToDb();
@@ -67,7 +66,6 @@ export const login = async (
 
       switch (error.type) {
         case "CredentialsSignin":
-          console.log('hihhhhhhhh')
           return { error: "Invalid credentials" };
         default:
           return { error: "Something went wrong" };

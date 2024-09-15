@@ -54,7 +54,6 @@
 //     '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
 //   ],
 // }
-
 import { NextResponse } from "next/server";
 import NextAuth from "next-auth";
 import authConfig from "./auth.config";
@@ -68,22 +67,24 @@ import {
 
 const authMiddleware = async (req:any) => {
   const { nextUrl } = req;
-  const isLoggedIn = !!req.auth;
+  const isLoggedIn = !!req.auth; // Detecting login status
   const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
   const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
   const isAuthRoute = authRoutes.includes(nextUrl.pathname);
+
+  console.log("User Authentication Status:", isLoggedIn); // Debugging login status
 
   // Allow access to API auth routes without restrictions
   if (isApiAuthRoute) {
     return NextResponse.next();
   }
 
-  // Redirect logged-in users away from the login page
+  // Prevent redirect loop for authenticated users accessing login pages
   if (isAuthRoute && isLoggedIn) {
     return NextResponse.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl));
   }
 
-  // Redirect unauthenticated users to login for protected routes
+  // If not logged in and trying to access a protected route
   if (!isLoggedIn && !isPublicRoute) {
     let callbackUrl = nextUrl.pathname;
     if (nextUrl.search) {
@@ -91,12 +92,17 @@ const authMiddleware = async (req:any) => {
     }
     const encodedCallbackUrl = encodeURIComponent(callbackUrl);
 
+    // Avoid multiple redirects to login page
+    if (nextUrl.pathname === '/auth/login') {
+      return NextResponse.next(); // Already on login page, no need to redirect again
+    }
+
     return NextResponse.redirect(
       new URL(`/auth/login?callbackUrl=${encodedCallbackUrl}`, nextUrl)
     );
   }
 
-  // Allow access to public routes or authenticated routes
+  // Allow access to public or authenticated routes
   return NextResponse.next();
 };
 

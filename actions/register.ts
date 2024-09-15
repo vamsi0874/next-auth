@@ -12,12 +12,11 @@ import { sendVerificationEmail } from "@/lib/mail";
 export const register = async ( values : z.infer<typeof RegisterSchema>) => {
     // Validate fields
     await connectToDb();
-    console.log('iikik',values)
     const validateResult = RegisterSchema.safeParse(values);
     
     // Check if validation succeeded
     if (!validateResult.success) {
-        console.log('Validation failed:', validateResult.error);
+      
         return { error: "Invalid fields" };
     }
 
